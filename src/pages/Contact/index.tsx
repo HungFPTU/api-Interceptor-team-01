@@ -9,6 +9,7 @@ import {
   Select,
   Table,
 } from "antd";
+
 import { useEffect, useState } from "react";
 import { Task } from "../../model/task";
 import { ColumnsType } from "antd/es/table";
@@ -35,6 +36,7 @@ function ManageTask() {
     localStorage.setItem("tasks", JSON.stringify(updatedTasks));
     setTasks(updatedTasks);
   };
+
 
   const handleSubmit = (values: any) => {
     setLoading(true);
@@ -64,6 +66,11 @@ function ManageTask() {
       endDate: moment(task.endDate),
     });
     setIsModalVisible(true);
+  };
+
+  const handleDeleteTask = (id: number) => {
+    const updatedTasks = tasks.filter((task) => task.id !== id);
+    saveTasks(updatedTasks);
   };
 
   const handleOk = () => {
@@ -143,6 +150,28 @@ function ManageTask() {
       align: "center",
       render: (_, record) => (
         <Button onClick={() => showModal(record)}>Update</Button>
+      ),
+    },
+
+    {
+      title: "Action",
+      dataIndex: "id",
+      key: "id",
+      align: "center",
+      render: (id: number) => (
+        <div style={{ textAlign: "center" }}>
+          <Popconfirm
+            title="Delete the task"
+            description="Are you sure to delete this task?"
+            onConfirm={() => handleDeleteTask(id)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button type="primary" danger>
+              Delete
+            </Button>
+          </Popconfirm>
+        </div>
       ),
     },
   ];
