@@ -276,9 +276,10 @@ function ManageTask() {
                 style={{ width: "100%" }}
                 format="YYYY-MM-DD HH:mm:ss"
                 showTime
-                disabledDate={(current: moment.Moment) =>
-                  current && current < moment().endOf("day")
-                }
+                disabledDate={(current) => {
+                  const momentCurrent = moment(current.toDate()); // Convert Dayjs to Moment
+                  return startDate ? momentCurrent && momentCurrent < startDate.startOf("day") : false;
+                }}
                 onChange={(date) => setStartDate(date)}
               />
             </Form.Item>
@@ -293,9 +294,10 @@ function ManageTask() {
                 style={{ width: "100%" }}
                 format="YYYY-MM-DD HH:mm:ss"
                 showTime
-                disabledDate={(current: moment.Moment) =>
-                  startDate ? current && current < startDate : false
-                }
+               disabledDate={(current) => {
+                  const momentCurrent = moment(current.toDate()); // Convert Dayjs to Moment
+                  return startDate ? momentCurrent && momentCurrent < startDate.startOf("day") : false;
+                }}
               />
             </Form.Item>
           </div>
