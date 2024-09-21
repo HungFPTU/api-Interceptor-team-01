@@ -1,12 +1,14 @@
 import { Option } from "antd/es/mentions";
 import "./index.scss";
-import { Button,
+import {
+  Button,
   DatePicker,
   Form,
   Input,
   Modal,
   Select,
-  Table, } from "antd";
+  Table,
+} from "antd";
 import { useEffect, useState } from "react";
 import { Task } from "../../model/task";
 import { ColumnsType } from "antd/es/table";
@@ -69,11 +71,11 @@ function ManageTask() {
       const updatedTasks = tasks.map((task) =>
         task.id === editingTask?.id
           ? {
-              ...task,
-              ...values,
-              startDate: values.startDate.format("YYYY-MM-DD"),
-              endDate: values.endDate.format("YYYY-MM-DD"),
-            }
+            ...task,
+            ...values,
+            startDate: values.startDate.format("YYYY-MM-DD"),
+            endDate: values.endDate.format("YYYY-MM-DD"),
+          }
           : task
       );
       setTasks(updatedTasks);
@@ -280,7 +282,7 @@ function ManageTask() {
                   const momentCurrent = moment(current.toDate()); // Convert Dayjs to Moment
                   return startDate ? momentCurrent && momentCurrent < startDate.startOf("day") : false;
                 }}
-                onChange={(date) => setStartDate(date)}
+                onChange={(date) => setStartDate(date ? moment(date.toDate()) : null)} // Convert to Moment
               />
             </Form.Item>
             <Form.Item
@@ -294,7 +296,7 @@ function ManageTask() {
                 style={{ width: "100%" }}
                 format="YYYY-MM-DD HH:mm:ss"
                 showTime
-               disabledDate={(current) => {
+                disabledDate={(current) => {
                   const momentCurrent = moment(current.toDate()); // Convert Dayjs to Moment
                   return startDate ? momentCurrent && momentCurrent < startDate.startOf("day") : false;
                 }}
