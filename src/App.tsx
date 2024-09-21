@@ -1,17 +1,21 @@
-import { Home } from "./pages"
-import { Contact } from "./pages"
-import { Routes, Route } from "react-router-dom"
-function App() {
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import Dashboard from "./components/dashboard";
+import ManageTask from "./pages/Contact/index";
 
-  return (
-    <>
-      <Routes>
-        <Route index element={<Home/>}/>
-        <Route path="/" element={<Home/>}/>
-        <Route path="/contact" element={<Contact/>}/>
-      </Routes>
-    </>
-  )
+function App() {
+  const router = createBrowserRouter([
+    {
+      path: "/",
+      element: <Dashboard />,
+      children: [
+        {
+          path: "/dashboard/task",
+          element: <ManageTask />,
+        },
+      ],
+    },
+  ]);
+  return <RouterProvider router={router} />;
 }
 
-export default App
+export default App;
