@@ -63,6 +63,7 @@ function ManageTask() {
     setShowCreateModal(false);
     form.resetFields();
     setStartDate(null);
+    setStartHour(moment().hour())
   };
 
   useEffect(() => {
@@ -106,11 +107,17 @@ function ManageTask() {
       setTasks(updatedTasks);
       localStorage.setItem("tasks", JSON.stringify(updatedTasks));
       setIsModalVisible(false);
+      setStartDate(null)
+      setStartHour(moment().hour())
+
     });
   };
 
   const handleCancel = () => {
     setIsModalVisible(false);
+    setStartDate(null)
+    setStartHour(moment().hour())
+
   };
 
   const columns: ColumnsType<Task> = [
@@ -287,10 +294,10 @@ function ManageTask() {
                 style={{ width: "100%" }}
                 format="YYYY-MM-DD HH:mm:ss"
                 showTime
-                disabledDate={(current) => {
-                  const momentCurrent = moment(current.toDate()); // Convert Dayjs to Moment
-                  return startDate ? momentCurrent && momentCurrent < startDate.startOf("day") : false;
-                }}
+                // disabledDate={(current) => {
+                //   const momentCurrent = moment(current.toDate()); // Convert Dayjs to Moment
+                //   return startDate ? momentCurrent && momentCurrent < startDate.startOf("day") : false;
+                // }}
 
                 onChange={(date) => {
                   setStartDate(date ? moment(date.toDate()) : null);
@@ -315,11 +322,10 @@ function ManageTask() {
                 disabledDate={(current) => {
                   const momentCurrent = moment(current.toDate());
                   // Disable dates before today
-                  return momentCurrent && momentCurrent.isBefore(moment(), 'day');
+                  return startDate ? momentCurrent && momentCurrent < startDate.startOf("day") : false;
                 }}
                 disabledTime={(current) => {
                   const momentCurrent = moment(current.toDate());
-
                   const disabledHours = momentCurrent.isSame(moment(), 'day')
                     ? Array.from({ length: momentCurrent.hour() }, (_, i) => i) // Disable hours strictly before the current hour
                     : [];
@@ -335,13 +341,8 @@ function ManageTask() {
                     disabledSeconds: () => [],
                   };
                 }}
-                // onChange={(date) => setEndDate(date ? moment(date.toDate()) : null)}
-                onChange={(date) => {
-                  setEndDate(date ? moment(date.toDate()) : null);
-                  if (date) {
-                    setEndHour(moment(date.toDate()).hour()); // Update endHour if date is selected
-                  }
-                }}
+              // onChange={(date) => setEndDate(date ? moment(date.toDate()) : null)}
+
               />
             </Form.Item>
           </div>
@@ -364,10 +365,19 @@ function ManageTask() {
       </Modal>
 
       <Modal
-        onCancel={() => setShowCreateModal(false)}
+        onCancel={() => {
+          setShowCreateModal(false)
+          setStartDate(null)
+          setStartHour(moment().hour())
+
+        }}
         open={showCreateModal}
         footer={[
-          <Button key="back" onClick={() => setShowCreateModal(false)}>
+          <Button key="back" onClick={() => {
+            setShowCreateModal(false)
+            setStartDate(null)
+
+          }}>
             Cancel
           </Button>,
           <Button
@@ -420,10 +430,10 @@ function ManageTask() {
                 style={{ width: "100%" }}
                 format="YYYY-MM-DD HH:mm:ss"
                 showTime
-                disabledDate={(current) => {
-                  const momentCurrent = moment(current.toDate()); // Convert Dayjs to Moment
-                  return startDate ? momentCurrent && momentCurrent < startDate.startOf("day") : false;
-                }}
+                // disabledDate={(current) => {
+                //   const momentCurrent = moment(current.toDate()); // Convert Dayjs to Moment
+                //   return startDate ? momentCurrent && momentCurrent < startDate.startOf("day") : false;
+                // }}
 
                 onChange={(date) => {
                   setStartDate(date ? moment(date.toDate()) : null);
@@ -448,7 +458,7 @@ function ManageTask() {
                 disabledDate={(current) => {
                   const momentCurrent = moment(current.toDate());
                   // Disable dates before today
-                  return momentCurrent && momentCurrent.isBefore(moment(), 'day');
+                  return startDate ? momentCurrent && momentCurrent < startDate.startOf("day") : false;
                 }}
                 disabledTime={(current) => {
                   const momentCurrent = moment(current.toDate());
