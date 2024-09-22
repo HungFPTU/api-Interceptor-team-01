@@ -318,8 +318,18 @@ function ManageTask() {
                 showTime
                 disabledDate={(current) => {
                   const momentCurrent = moment(current.toDate());
-                  // Disable dates before today
-                  return startDate ? momentCurrent && momentCurrent < startDate.startOf("day") : false;
+                  const currentDate = moment();
+
+                  if (startDate && startDate.isBefore(currentDate, 'day')) {
+                    // If startDate is before today, disable dates before today
+                    return momentCurrent.isBefore(currentDate, 'day');
+                  } else if (startDate) {
+                    // If startDate is today or in the future, disable dates before startDate
+                    return momentCurrent.isBefore(startDate, 'day');
+                  } else {
+                    // If startDate is null, allow all dates
+                    return false;
+                  }
                 }}
                 disabledTime={(current) => {
                   const momentCurrent = moment(current.toDate());
@@ -454,8 +464,18 @@ function ManageTask() {
                 showTime
                 disabledDate={(current) => {
                   const momentCurrent = moment(current.toDate());
-                  // Disable dates before today
-                  return startDate ? momentCurrent && momentCurrent < startDate.startOf("day") : false;
+                  const currentDate = moment();
+
+                  if (startDate && startDate.isBefore(currentDate, 'day')) {
+                    // If startDate is before today, disable dates before today
+                    return momentCurrent.isBefore(currentDate, 'day');
+                  } else if (startDate) {
+                    // If startDate is today or in the future, disable dates before startDate
+                    return momentCurrent.isBefore(startDate, 'day');
+                  } else {
+                    // If startDate is null, allow all dates
+                    return false;
+                  }
                 }}
                 disabledTime={(current) => {
                   const momentCurrent = moment(current.toDate());
