@@ -50,8 +50,8 @@ function ManageTask() {
     const newTask = {
       ...values,
       id: tasks.length + 1,
-      startDate: values.startDate.format("YYYY-MM-DD HH:mm:ss"),
-      endDate: values.endDate.format("YYYY-MM-DD HH:mm:ss"),
+      startDate: values.startDate.format("YYYY-MM-DD"),
+      endDate: values.endDate.format("YYYY-MM-DD"),
     };
     const updatedTasks = [...tasks, newTask];
     saveTasks(updatedTasks);
@@ -349,7 +349,7 @@ function ManageTask() {
             <Input.TextArea />
           </Form.Item>
           <div style={{ display: "flex", gap: "10px" }}>
-            <Form.Item
+          <Form.Item
               name="startDate"
               label="Start Date"
               rules={[
@@ -358,13 +358,12 @@ function ManageTask() {
             >
               <DatePicker
                 style={{ width: "100%" }}
-                format="YYYY-MM-DD HH:mm:ss"
-                showTime
-                disabledDate={(current) => {
-                  const momentCurrent = moment(current.toDate()); // Convert Dayjs to Moment
-                  return startDate ? momentCurrent && momentCurrent < startDate.startOf("day") : false;
-                }}
-                onChange={(date) => setStartDate(date ? moment(date.toDate()) : null)} // Convert to Moment
+                format="YYYY-MM-DD"
+                
+                disabledDate={(current: moment.Moment) =>
+                  current && current < moment().endOf("day")
+                }
+                onChange={(date) => setStartDate(date)}
               />
             </Form.Item>
             <Form.Item
@@ -376,12 +375,11 @@ function ManageTask() {
             >
               <DatePicker
                 style={{ width: "100%" }}
-                format="YYYY-MM-DD HH:mm:ss"
-                showTime
-                disabledDate={(current) => {
-                  const momentCurrent = moment(current.toDate()); // Convert Dayjs to Moment
-                  return startDate ? momentCurrent && momentCurrent < startDate.startOf("day") : false;
-                }}
+                format="YYYY-MM-DD"
+                
+                disabledDate={(current: moment.Moment) =>
+                  startDate ? current && current <= startDate : false
+                }
               />
             </Form.Item>
           </div>
