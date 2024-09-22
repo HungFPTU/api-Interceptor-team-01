@@ -31,6 +31,10 @@ function ManageTask() {
   const [startDate, setStartDate] = useState<moment.Moment | null>(null);
   const taskStatuses = ["Not Started", "In Progress", "Completed"];
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
+  const [startHour, setStartHour] = useState<number>(moment().hour());
+  const [endDate, setEndDate] = useState<moment.Moment | null>(null);
+  const [endHour, setEndHour] = useState<number>(moment().hour());
+
 
   const loadTasks = () => {
     const savedTasks = localStorage.getItem("tasks");
@@ -88,14 +92,14 @@ function ManageTask() {
   };
 
   const handleOk = () => {
-    form.validateFields().then((values) => {
+    form.validateFields().then((values: any) => {
       const updatedTasks = tasks.map((task) =>
         task.id === editingTask?.id
           ? {
             ...task,
             ...values,
-            startDate: values.startDate.format("YYYY-MM-DD"),
-            endDate: values.endDate.format("YYYY-MM-DD"),
+            startDate: values.startDate.format("YYYY-MM-DD HH:mm:ss"),
+            endDate: values.endDate.format("YYYY-MM-DD HH:mm:ss"),
           }
           : task
       );
@@ -271,22 +275,71 @@ function ManageTask() {
           >
             <Input.TextArea />
           </Form.Item>
-          <Form.Item
-            name="startDate"
-            label="Start Date"
-            rules={[
-              { required: true, message: "Please select the start date!" },
-            ]}
-          >
-            <DatePicker />
-          </Form.Item>
-          <Form.Item
-            name="endDate"
-            label="End Date"
-            rules={[{ required: true, message: "Please select the end date!" }]}
-          >
-            <DatePicker />
-          </Form.Item>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <Form.Item
+              name="startDate"
+              label="Start Date"
+              rules={[
+                { required: true, message: "Please input start date task!" },
+              ]}
+            >
+              <DatePicker
+                style={{ width: "100%" }}
+                format="YYYY-MM-DD HH:mm:ss"
+                showTime
+                disabledDate={(current) => {
+                  const momentCurrent = moment(current.toDate()); // Convert Dayjs to Moment
+                  return startDate ? momentCurrent && momentCurrent < startDate.startOf("day") : false;
+                }}
+
+                onChange={(date) => {
+                  setStartDate(date ? moment(date.toDate()) : null);
+                  if (date) {
+                    setStartHour(moment(date.toDate()).hour()); // Update startHour if date is selected
+                  }
+                }
+                }
+              />
+            </Form.Item>
+            <Form.Item
+              name="endDate"
+              label="End Date"
+              rules={[
+                { required: true, message: "Please input end date task!" },
+              ]}
+            >
+              <DatePicker
+                style={{ width: "100%" }}
+                format="YYYY-MM-DD HH:mm:ss"
+                showTime
+                disabledDate={(current) => {
+                  const momentCurrent = moment(current.toDate()); // Convert Dayjs to Moment
+                  return startDate ? momentCurrent && momentCurrent < startDate.startOf("day") : false;
+                }}
+                disabledTime={(current) => {
+                  const momentCurrent = moment(current.toDate());
+                  const disabledHours = momentCurrent.isSame(moment(), 'day')
+                    ? Array.from({ length: momentCurrent.hours() + 1 }, (_, i) => i) // Disable hours before the current hour + 1
+                    : [];
+
+                  return {
+                    disabledHours: () => disabledHours,
+                    disabledMinutes: () => [],
+                    disabledSeconds: () => [],
+                  };
+                }}
+
+                onChange={(date) => {
+                  setEndDate(date ? moment(date.toDate()) : null);
+                  if (date) {
+                    setEndHour(moment(date.toDate()).hour()); // Update endHour if date is selected
+                  }
+                }}
+              />
+            </Form.Item>
+          </div>
+          {/* //============================================================================ */}
+
           <Form.Item
             name="status"
             label="Status"
@@ -364,7 +417,14 @@ function ManageTask() {
                   const momentCurrent = moment(current.toDate()); // Convert Dayjs to Moment
                   return startDate ? momentCurrent && momentCurrent < startDate.startOf("day") : false;
                 }}
-                onChange={(date) => setStartDate(date ? moment(date.toDate()) : null)} // Convert to Moment
+
+                onChange={(date) => {
+                  setStartDate(date ? moment(date.toDate()) : null);
+                  if (date) {
+                    setStartHour(moment(date.toDate()).hour()); // Update startHour if date is selected
+                  }
+                }
+                }
               />
             </Form.Item>
             <Form.Item
@@ -381,6 +441,39 @@ function ManageTask() {
                 disabledDate={(current) => {
                   const momentCurrent = moment(current.toDate()); // Convert Dayjs to Moment
                   return startDate ? momentCurrent && momentCurrent < startDate.startOf("day") : false;
+                }}
+                disabledTime={(current) => {
+
+                  // If startDate is null or doesn't have an hour, allow all times
+                  // if (!startDate || !startDate.isValid() || !startDate.hour() || !endDate) {
+                  //   return {
+                  //     disabledHours: () => [],
+                  //     disabledMinutes: () => [],
+                  //     disabledSeconds: () => [],
+                  //   };
+                  // }
+
+                  // Disable times before one hour after startDate's hour only if on the same day
+                  // const disabledHours = endDate.isSame(startDate, 'day')
+                  //   ? Array.from({ length: startHour + 1 }, (_, i) => i) // Disable hours before startDate.hour() + 1
+                  //   : [];
+                  const momentCurrent = moment(current.toDate());
+                  const disabledHours = momentCurrent.isSame(moment(), 'day')
+                    ? Array.from({ length: momentCurrent.hours() + 1 }, (_, i) => i) // Disable hours before the current hour + 1
+                    : [];
+
+                  return {
+                    disabledHours: () => disabledHours,
+                    disabledMinutes: () => [],
+                    disabledSeconds: () => [],
+                  };
+                }}
+                // onChange={(date) => setEndDate(date ? moment(date.toDate()) : null)}
+                onChange={(date) => {
+                  setEndDate(date ? moment(date.toDate()) : null);
+                  if (date) {
+                    setEndHour(moment(date.toDate()).hour()); // Update endHour if date is selected
+                  }
                 }}
               />
             </Form.Item>
