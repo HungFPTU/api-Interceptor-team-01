@@ -313,14 +313,21 @@ function ManageTask() {
                 format="YYYY-MM-DD HH:mm:ss"
                 showTime
                 disabledDate={(current) => {
-                  const momentCurrent = moment(current.toDate()); // Convert Dayjs to Moment
-                  return startDate ? momentCurrent && momentCurrent < startDate.startOf("day") : false;
+                  const momentCurrent = moment(current.toDate());
+                  // Disable dates before today
+                  return momentCurrent && momentCurrent.isBefore(moment(), 'day');
                 }}
                 disabledTime={(current) => {
                   const momentCurrent = moment(current.toDate());
+
                   const disabledHours = momentCurrent.isSame(moment(), 'day')
-                    ? Array.from({ length: momentCurrent.hours() + 1 }, (_, i) => i) // Disable hours before the current hour + 1
+                    ? Array.from({ length: momentCurrent.hour() }, (_, i) => i) // Disable hours strictly before the current hour
                     : [];
+
+                  // Additionally, disable times before one hour after startDate's hour only if on the same day
+                  if (momentCurrent.isSame(startDate, 'day')) {
+                    disabledHours.push(...Array.from({ length: startHour + 1 }, (_, i) => i));
+                  }
 
                   return {
                     disabledHours: () => disabledHours,
@@ -328,7 +335,7 @@ function ManageTask() {
                     disabledSeconds: () => [],
                   };
                 }}
-
+                // onChange={(date) => setEndDate(date ? moment(date.toDate()) : null)}
                 onChange={(date) => {
                   setEndDate(date ? moment(date.toDate()) : null);
                   if (date) {
@@ -439,28 +446,20 @@ function ManageTask() {
                 format="YYYY-MM-DD HH:mm:ss"
                 showTime
                 disabledDate={(current) => {
-                  const momentCurrent = moment(current.toDate()); // Convert Dayjs to Moment
-                  return startDate ? momentCurrent && momentCurrent < startDate.startOf("day") : false;
+                  const momentCurrent = moment(current.toDate());
+                  // Disable dates before today
+                  return momentCurrent && momentCurrent.isBefore(moment(), 'day');
                 }}
                 disabledTime={(current) => {
-
-                  // If startDate is null or doesn't have an hour, allow all times
-                  // if (!startDate || !startDate.isValid() || !startDate.hour() || !endDate) {
-                  //   return {
-                  //     disabledHours: () => [],
-                  //     disabledMinutes: () => [],
-                  //     disabledSeconds: () => [],
-                  //   };
-                  // }
-
-                  // Disable times before one hour after startDate's hour only if on the same day
-                  // const disabledHours = endDate.isSame(startDate, 'day')
-                  //   ? Array.from({ length: startHour + 1 }, (_, i) => i) // Disable hours before startDate.hour() + 1
-                  //   : [];
                   const momentCurrent = moment(current.toDate());
                   const disabledHours = momentCurrent.isSame(moment(), 'day')
-                    ? Array.from({ length: momentCurrent.hours() + 1 }, (_, i) => i) // Disable hours before the current hour + 1
+                    ? Array.from({ length: momentCurrent.hour() }, (_, i) => i) // Disable hours strictly before the current hour
                     : [];
+
+                  // Additionally, disable times before one hour after startDate's hour only if on the same day
+                  if (momentCurrent.isSame(startDate, 'day')) {
+                    disabledHours.push(...Array.from({ length: startHour + 1 }, (_, i) => i));
+                  }
 
                   return {
                     disabledHours: () => disabledHours,
@@ -468,13 +467,8 @@ function ManageTask() {
                     disabledSeconds: () => [],
                   };
                 }}
-                // onChange={(date) => setEndDate(date ? moment(date.toDate()) : null)}
-                onChange={(date) => {
-                  setEndDate(date ? moment(date.toDate()) : null);
-                  if (date) {
-                    setEndHour(moment(date.toDate()).hour()); // Update endHour if date is selected
-                  }
-                }}
+              // onChange={(date) => setEndDate(date ? moment(date.toDate()) : null)}
+
               />
             </Form.Item>
           </div>
