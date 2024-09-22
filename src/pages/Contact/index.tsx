@@ -32,9 +32,6 @@ function ManageTask() {
   const taskStatuses = ["Not Started", "In Progress", "Completed"];
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
   const [startHour, setStartHour] = useState<number>(moment().hour());
-  const [endDate, setEndDate] = useState<moment.Moment | null>(null);
-  const [endHour, setEndHour] = useState<number>(moment().hour());
-  console.log(startHour, endDate, endHour)
 
   const loadTasks = () => {
     const savedTasks = localStorage.getItem("tasks");
