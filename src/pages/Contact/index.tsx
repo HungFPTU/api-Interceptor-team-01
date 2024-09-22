@@ -9,8 +9,14 @@ import {
   Select,
   Table,
   Popconfirm,
+  Tag,
 } from "antd";
 
+import {
+  CheckCircleOutlined,
+  ExclamationCircleOutlined,
+  SyncOutlined,
+} from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { Task } from "../../model/task";
 import { ColumnsType } from "antd/es/table";
@@ -74,6 +80,13 @@ function ManageTask() {
     saveTasks(updatedTasks);
   };
 
+  const handleStatusChange = (id: number, status: string) => {
+    const updatedTasks = tasks.map((task) =>
+      task.id === id ? { ...task, status } : task
+    );
+    saveTasks(updatedTasks);
+  };
+
   const handleOk = () => {
     form.validateFields().then((values) => {
       const updatedTasks = tasks.map((task) =>
@@ -133,15 +146,54 @@ function ManageTask() {
       dataIndex: "status",
       key: "status",
       align: "center",
-      render: (status) => {
-        let color = "blue";
-        if (status === "Completed") {
-          color = "green";
-        } else if (status === "In Progress") {
-          color = "orange";
-        }
-        return <span style={{ color }}>{status}</span>;
-      },
+      render: (status: string, record: Task) => (
+        <Select
+          className="select"
+          style={{ border: "none", width: "100%" }}
+          defaultValue={status}
+          onChange={(newStatus) => handleStatusChange(record.id, newStatus)}
+        >
+          <Option value="New">
+            <Tag
+              style={{
+                width: "100px",
+                textAlign: "center",
+                fontSize: "15px",
+              }}
+              icon={<ExclamationCircleOutlined />}
+              color="warning"
+            >
+              New
+            </Tag>
+          </Option>
+          <Option value="In Progress">
+            <Tag
+              style={{
+                width: "130px",
+                textAlign: "center",
+                fontSize: "15px",
+              }}
+              icon={<SyncOutlined spin />}
+              color="processing"
+            >
+              In Progress
+            </Tag>
+          </Option>
+          <Option value="Completed">
+            <Tag
+              style={{
+                width: "120px",
+                textAlign: "center",
+                fontSize: "15px",
+              }}
+              icon={<CheckCircleOutlined />}
+              color="success"
+            >
+              Completed
+            </Tag>
+          </Option>
+        </Select>
+      ),
     },
 
     {
