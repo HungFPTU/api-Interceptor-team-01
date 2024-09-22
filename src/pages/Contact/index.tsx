@@ -34,7 +34,7 @@ function ManageTask() {
   const [startHour, setStartHour] = useState<number>(moment().hour());
   const [endDate, setEndDate] = useState<moment.Moment | null>(null);
   const [endHour, setEndHour] = useState<number>(moment().hour());
-
+  console.log(startHour, endDate, endHour)
 
   const loadTasks = () => {
     const savedTasks = localStorage.getItem("tasks");
