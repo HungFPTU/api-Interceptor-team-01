@@ -31,6 +31,7 @@ function ManageTask() {
   const [startDate, setStartDate] = useState<moment.Moment | null>(null);
   const taskStatuses = ["Not Started", "In Progress", "Completed"];
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
+  const [startHour, setStartHour] = useState<number>(moment().hour());
 
   const loadTasks = () => {
     const savedTasks = localStorage.getItem("tasks");
@@ -59,6 +60,7 @@ function ManageTask() {
     setShowCreateModal(false);
     form.resetFields();
     setStartDate(null);
+    setStartHour(moment().hour())
   };
 
   useEffect(() => {
@@ -88,25 +90,31 @@ function ManageTask() {
   };
 
   const handleOk = () => {
-    form.validateFields().then((values) => {
+    form.validateFields().then((values: any) => {
       const updatedTasks = tasks.map((task) =>
         task.id === editingTask?.id
           ? {
             ...task,
             ...values,
-            startDate: values.startDate.format("YYYY-MM-DD"),
-            endDate: values.endDate.format("YYYY-MM-DD"),
+            startDate: values.startDate.format("YYYY-MM-DD HH:mm:ss"),
+            endDate: values.endDate.format("YYYY-MM-DD HH:mm:ss"),
           }
           : task
       );
       setTasks(updatedTasks);
       localStorage.setItem("tasks", JSON.stringify(updatedTasks));
       setIsModalVisible(false);
+      setStartDate(null)
+      setStartHour(moment().hour())
+
     });
   };
 
   const handleCancel = () => {
     setIsModalVisible(false);
+    setStartDate(null)
+    setStartHour(moment().hour())
+
   };
 
   const columns: ColumnsType<Task> = [
@@ -271,22 +279,82 @@ function ManageTask() {
           >
             <Input.TextArea />
           </Form.Item>
-          <Form.Item
-            name="startDate"
-            label="Start Date"
-            rules={[
-              { required: true, message: "Please select the start date!" },
-            ]}
-          >
-            <DatePicker />
-          </Form.Item>
-          <Form.Item
-            name="endDate"
-            label="End Date"
-            rules={[{ required: true, message: "Please select the end date!" }]}
-          >
-            <DatePicker />
-          </Form.Item>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <Form.Item
+              name="startDate"
+              label="Start Date"
+              rules={[
+                { required: true, message: "Please input start date task!" },
+              ]}
+            >
+              <DatePicker
+                style={{ width: "100%" }}
+                format="YYYY-MM-DD HH:mm:ss"
+                showTime
+                // disabledDate={(current) => {
+                //   const momentCurrent = moment(current.toDate()); // Convert Dayjs to Moment
+                //   return startDate ? momentCurrent && momentCurrent < startDate.startOf("day") : false;
+                // }}
+
+                onChange={(date) => {
+                  setStartDate(date ? moment(date.toDate()) : null);
+                  if (date) {
+                    setStartHour(moment(date.toDate()).hour()); // Update startHour if date is selected
+                  }
+                }
+                }
+              />
+            </Form.Item>
+            <Form.Item
+              name="endDate"
+              label="End Date"
+              rules={[
+                { required: true, message: "Please input end date task!" },
+              ]}
+            >
+              <DatePicker
+                style={{ width: "100%" }}
+                format="YYYY-MM-DD HH:mm:ss"
+                showTime
+                disabledDate={(current) => {
+                  const momentCurrent = moment(current.toDate());
+                  const currentDate = moment();
+
+                  if (startDate && startDate.isBefore(currentDate, 'day')) {
+                    // If startDate is before today, disable dates before today
+                    return momentCurrent.isBefore(currentDate, 'day');
+                  } else if (startDate) {
+                    // If startDate is today or in the future, disable dates before startDate
+                    return momentCurrent.isBefore(startDate, 'day');
+                  } else {
+                    // If startDate is null, allow all dates
+                    return false;
+                  }
+                }}
+                disabledTime={(current) => {
+                  const momentCurrent = moment(current.toDate());
+                  const disabledHours = momentCurrent.isSame(moment(), 'day')
+                    ? Array.from({ length: momentCurrent.hour() }, (_, i) => i) // Disable hours strictly before the current hour
+                    : [];
+
+                  // Additionally, disable times before one hour after startDate's hour only if on the same day
+                  if (momentCurrent.isSame(startDate, 'day')) {
+                    disabledHours.push(...Array.from({ length: startHour + 1 }, (_, i) => i));
+                  }
+
+                  return {
+                    disabledHours: () => disabledHours,
+                    disabledMinutes: () => [],
+                    disabledSeconds: () => [],
+                  };
+                }}
+              // onChange={(date) => setEndDate(date ? moment(date.toDate()) : null)}
+
+              />
+            </Form.Item>
+          </div>
+          {/* //============================================================================ */}
+
           <Form.Item
             name="status"
             label="Status"
@@ -304,10 +372,19 @@ function ManageTask() {
       </Modal>
 
       <Modal
-        onCancel={() => setShowCreateModal(false)}
+        onCancel={() => {
+          setShowCreateModal(false)
+          setStartDate(null)
+          setStartHour(moment().hour())
+
+        }}
         open={showCreateModal}
         footer={[
-          <Button key="back" onClick={() => setShowCreateModal(false)}>
+          <Button key="back" onClick={() => {
+            setShowCreateModal(false)
+            setStartDate(null)
+
+          }}>
             Cancel
           </Button>,
           <Button
@@ -357,7 +434,6 @@ function ManageTask() {
               ]}
             >
               <DatePicker
-                style={{ width: "100%" }}
                 format="YYYY-MM-DD"
                 
                 disabledDate={(current: moment.Moment) =>
@@ -375,11 +451,13 @@ function ManageTask() {
             >
               <DatePicker
                 style={{ width: "100%" }}
+
                 format="YYYY-MM-DD"
                 
                 disabledDate={(current: moment.Moment) =>
                   startDate ? current && current <= startDate : false
                 }
+
               />
             </Form.Item>
           </div>
