@@ -1,11 +1,28 @@
-import axios from "axios";
+// api/apiClient.tsx
+import axios,{AxiosResponse} from 'axios';
+import { Post } from '../model/RouteConfig'; // adjust the path as needed
+
+const API_BASE_URL = "https://66f39cb871c84d805879453f.mockapi.io";
 
 const apiClient = axios.create({
-    baseURL: 'https://66f39cb871c84d805879453f.mockapi.io/',
-    headers: {
-        'Content-Type': 'application/json',
-    }
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
+
+
+
+export const getPosts = async (): Promise<Post[]> => {
+    try {
+      const response: AxiosResponse<Post[]> = await apiClient.get("/post");
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch posts", error);
+      throw error; // Re-throw error to handle it where the function is called
+    }
+  };
+
 
 // Add a request interceptor
 axios.interceptors.request.use(function (config) {
