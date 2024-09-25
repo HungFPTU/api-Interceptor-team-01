@@ -1,15 +1,8 @@
 import apiClient from './apiClient';
-import { AxiosResponse } from 'axios';
-import { Post } from '../model/RouteConfig';
-export const getAllPostAPI = async (): Promise<Post[]> => {
-    try {
-      const response: AxiosResponse<Post[]> = await apiClient.get("/post");
-      return response.data;
-    } catch (error) {
-      console.error("Failed to fetch posts", error);
-      throw error; // Re-throw error to handle it where the function is called
-    }
-  };
+
+export const getAllPostAPI = () => {
+  return apiClient.get(`/post`);
+}
 
 export const getPostIdAPI = ({ postId }: { postId: number }) => {
     return apiClient.get(`/post/${postId}`);

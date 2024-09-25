@@ -41,8 +41,8 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const data = await getAllPostAPI();
-        setPosts(data);
+        const response = await getAllPostAPI();
+        setPosts(response.data);
         setLoading(false); // Stop loading when data is fetched
       } catch (error) {
         console.error("Error fetching posts:", error);
