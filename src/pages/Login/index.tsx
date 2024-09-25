@@ -1,56 +1,73 @@
 import React from 'react';
-import { Form, Input, Button, Checkbox } from 'antd';
-import 'antd/dist/reset.css'; // Ant Design reset styles
-import { LockOutlined, UserOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Checkbox, notification } from 'antd';
+import { useNavigate } from 'react-router-dom';
+import userAPI from '../../api/userAPI';
 
 const Login: React.FC = () => {
-  const onFinish = (values: any) => {
-    console.log('Success:', values);
-  };
+  const navigate = useNavigate();
 
-  const onFinishFailed = (errorInfo: any) => {
-    console.log('Failed:', errorInfo);
+  const onFinish = async (values: any) => {
+    console.log('Received values:', values);
+    try {
+      const res = await userAPI.getAllUserAPI();
+      const userdata = res.data;
+
+      // Kiểm tra thông tin đăng nhập
+      const user = userdata.find((user: any) => 
+        user.email === values.username && user.password === values.password
+      );
+
+      if (user) {
+       
+        localStorage.setItem('user', JSON.stringify(user));
+        
+        navigate('/'); 
+      } else {
+        notification.error({
+          message: 'Login Failed',
+          description: 'Invalid email or password.',
+        });
+      }
+    } catch (error) {
+      notification.error({
+        message: 'Login Failed',
+        description: error instanceof Error ? error.message : 'An unknown error occurred.',
+      });
+    }
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-center mb-8">Login</h2>
-        <Form
-          name="login"
-          initialValues={{ remember: true }}
-          onFinish={onFinish}
-          onFinishFailed={onFinishFailed}
+    <div className="flex items-center justify-center h-screen bg-gray-100">
+      <Form
+        name="login"
+        onFinish={onFinish}
+        className="w-full max-w-sm bg-white p-8 rounded shadow-md"
+      >
+        <h2 className="text-2xl mb-6 text-center">Welcome</h2>
+        <Form.Item
+          name="username"
+          rules={[{ required: true, message: 'Please input your Username!' }]}
         >
-          <Form.Item
-            name="username"
-            rules={[{ required: true, message: 'Please input your Username!' }]}
-          >
-            <Input prefix={<UserOutlined />} placeholder="Username" />
-          </Form.Item>
+          <Input placeholder="Email" />
+        </Form.Item>
 
-          <Form.Item
-            name="password"
-            rules={[{ required: true, message: 'Please input your Password!' }]}
-          >
-            <Input.Password prefix={<LockOutlined />} placeholder="Password" />
-          </Form.Item>
+        <Form.Item
+          name="password"
+          rules={[{ required: true, message: 'Please input your Password!' }]}
+        >
+          <Input.Password placeholder="Password" />
+        </Form.Item>
 
-          <Form.Item name="remember" valuePropName="checked" noStyle>
-            <Checkbox>Remember me</Checkbox>
-          </Form.Item>
+        <Form.Item name="remember" valuePropName="checked" noStyle>
+          <Checkbox className='text-gray-600'>Remember me</Checkbox>
+        </Form.Item>
 
-          <Form.Item className="mt-4">
-            <Button
-              type="primary"
-              htmlType="submit"
-              className="w-full"
-            >
-              Log in
-            </Button>
-          </Form.Item>
-        </Form>
-      </div>
+        <Form.Item>
+          <Button type="primary" htmlType="submit" className="w-full mt-3">
+            Login
+          </Button>
+        </Form.Item>
+      </Form>
     </div>
   );
 };
