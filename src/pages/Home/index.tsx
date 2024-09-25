@@ -1,6 +1,6 @@
 
 const Home = () =>{
-    console.log(1)
+    console.log(1, "1")
     return(
         <>
             <h1>Home page</h1>

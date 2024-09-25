@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-    baseURL: 'mockApi',
+    baseURL: 'https://66f39cb871c84d805879453f.mockapi.io/',
     headers: {
         'Content-Type': 'application/json',
     }
