@@ -20,5 +20,6 @@ export interface Post{
   dateCreate: number,
   content: string,
   userId: number,
-  postId: number
+  postId: number,
+  image:string
 }

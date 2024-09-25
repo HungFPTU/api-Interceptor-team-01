@@ -1,0 +1,22 @@
+<div class="_wrapper_3m11s_1">
+<div class="_header_3m11s_29">
+<div class="_author_3m11s_45">
+<a href="/@caonguyen2009">
+<div class="_avatar_hzxfy_1" style="--font-size: 2.9px;">
+<img src="https://files.fullstack.edu.vn/f8-prod/public-images/6670ea3e254bb.png" alt="Lý Cao Nguyên">
+</div>
+</a>
+<a href="/@caonguyen2009">
+<span>Lý Cao Nguyên</span></a>
+</div>
+<div class="_actions_3m11s_84">
+<div class="_toggleBtn_1lgvg_1 _optionBtn_3m11s_92">
+<svg aria-hidden="true" focusable="false" data-prefix="far" data-icon="bookmark" class="svg-inline--fa fa-bookmark " role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path fill="currentColor" d="M0 48C0 21.5 21.5 0 48 0l0 48V441.4l130.1-92.9c8.3-6 19.6-6 27.9 0L336 441.4V48H48V0H336c26.5 0 48 21.5 48 48V488c0 9-5 17.2-13 21.3s-17.6 3.4-24.9-1.8L192 397.5 37.9 507.5c-7.3 5.2-16.9 5.9-24.9 1.8S0 497 0 488V48z"></path></svg>
+</div><div class="_optionBtn_3m11s_92" aria-expanded="false">
+<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="ellipsis" class="svg-inline--fa fa-ellipsis " role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+<path fill="currentColor" d="M8 256a56 56 0 1 1 112 0A56 56 0 1 1 8 256zm160 0a56 56 0 1 1 112 0 56 56 0 1 1 -112 0zm216-56a56 56 0 1 1 0 112 56 56 0 1 1 0-112z"></path>
+</svg></div></div></div><div class="_body_3m11s_35">
+<div class="_info_3m11s_40"><a href="/blog/minh-da-lam-the-nao-de-hoan-thanh-mot-du-an-website-chi-trong-15-ngay">
+<h2 class="_title_3m11s_13">Mình đã làm thế nào để hoàn thành một dự án website chỉ trong 15 ngày</h2></a><p class="_desc_3m11s_22">Xin chào mọi người mình là Lý Cao Nguyên, mình đã làm một dự án website front-end với hơn 100 bài học và 200 bài viết.
+
+Bài viết này...</p><div class="_metaInfo_3m11s_80"><a class="_tags_3m11s_112" href="/blog/tag/front-end?page=1">Front-end</a><span>3 tháng trước</span><span class="_dot_3m11s_103">·</span>4 phút đọc</div></div><div class="_thumb_3m11s_59 d-xl-none"><a href="/blog/minh-da-lam-the-nao-de-hoan-thanh-mot-du-an-website-chi-trong-15-ngay"><img src="https://files.fullstack.edu.vn/f8-prod/blog_posts/10850/667550d384026.png" alt="Mình đã làm thế nào để hoàn thành một dự án website chỉ trong 15 ngày"></a></div></div></div>
