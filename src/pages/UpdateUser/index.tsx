@@ -1,81 +1,121 @@
 import React, { useEffect, useState } from 'react';
 import { Form, Input, Button, notification } from 'antd';
 import userAPI from '../../api/userAPI';
+import { useNavigate } from 'react-router-dom';
 
-const EditProfile: React.FC = () => {
-  const [user, setUser] = useState<any>(null);
+interface UserDetails {
+  fullName: string;
+  email: string;
+  password: string; 
+  createDate: string;
+  updateDate: string;
+  userId: number;
+}
+
+const UpdateUserInfo: React.FC = () => {
+  const navigate = useNavigate();
+  const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
+  const [form] = Form.useForm();
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
-  }, []);
+    const userString = localStorage.getItem('user');
 
-  const onFinish = async (values: any) => {
-    // Kiểm tra user và userId
-    if (!user || !user.userId) {
-      notification.error({
-        message: 'Error',
-        description: 'User ID is not found.',
+    if (userString) {
+      const user = JSON.parse(userString);
+      setUserDetails(user); // Lấy thông tin người dùng từ localStorage
+      form.setFieldsValue({ // Tự động điền dữ liệu vào form
+        name: user.fullName, 
+        password: user.password, 
       });
-      return;
+    } else {
+      notification.error({
+        message: 'User Not Found',
+        description: 'Please log in again.',
+      });
+      navigate('/login');
     }
+  }, [navigate, form]);
 
-    try {
-      // Tạo đối tượng cập nhật với thông tin từ form và user
+  const onFinish = async (values: { name: string; password: string }) => {
+    const userString = localStorage.getItem('user');
+
+    if (userString) {
+      const user = JSON.parse(userString);
+      const userId = user.userId;
+
+      if (!userId || !userDetails) {
+        notification.error({
+          message: 'Update Failed',
+          description: 'User not found. Please log in again.',
+        });
+        return;
+      }
+
+      // Cập nhật thông tin người dùng
       const updatedUser = {
-        fullName: values.fullName,
-        email: user.email, // Giữ email cũ
+        ...userDetails,
+        fullName: values.name,
         password: values.password,
-        createDate: user.createDate, // Giữ ngày tạo cũ
         updateDate: new Date().toISOString(),
       };
 
-      // Gọi API để cập nhật thông tin người dùng
-      await userAPI.updateUserIdAPI(user.userId, updatedUser);
+      try {
+        // Gọi API để lưu thông tin người dùng
+        const response = await userAPI.updateUserIdAPI(
+          { userId: Number(userId) },
+          updatedUser
+        );
 
-      // Cập nhật lại localStorage
-      localStorage.setItem('user', JSON.stringify({ ...user, ...updatedUser }));
-
-      notification.success({
-        message: 'Profile Updated',
-        description: 'Your profile has been updated successfully.',
-      });
-    } catch (error) {
+        if (response.status === 200) {
+          // Cập nhật localStorage nếu thành công
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          notification.success({
+            message: 'Update Successful',
+            description: 'User information has been updated successfully.',
+          });
+          navigate('/'); // chuyển đến trang home
+        } else {
+          notification.error({
+            message: 'Update Failed',
+            description: 'Failed to update user information.',
+          });
+        }
+      } catch (error: unknown) {
+        notification.error({
+          message: 'Update Failed',
+          description: error instanceof Error ? error.message : 'An unknown error occurred.',
+        });
+      }
+    } else {
       notification.error({
         message: 'Update Failed',
-        description: error instanceof Error ? error.message : 'An unknown error occurred.',
+        description: 'User not found. Please log in again.',
       });
     }
   };
 
-  if (!user) {
-    return <div>Loading...</div>; // Hoặc có thể hiển thị một loading spinner
-  }
-
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100">
       <Form
-        name="editProfile"
+        form={form} // Kết nối form với component
+        name="updateUserInfo"
         onFinish={onFinish}
         className="w-full max-w-sm bg-white p-8 rounded shadow-md"
-        initialValues={{ fullName: user.fullName, password: user.password }}
       >
-        <h2 className="text-2xl mb-6 text-center">Edit Profile</h2>
-        
+        <h2 className="text-2xl mb-6 text-center">Update User Information</h2>
+
         <Form.Item
-          name="fullName"
-          rules={[{ required: true, message: 'Please input your Full Name!' }]}
+          name="name"
+          rules={[{ required: true, message: 'Please input your Name!' }]}
         >
-          <Input placeholder="Full Name" />
+          <Input placeholder="Name" />
         </Form.Item>
 
         <Form.Item
           name="password"
           rules={[{ required: true, message: 'Please input your Password!' }]}
         >
-          <Input.Password placeholder="Password" />
+          <Input.Password placeholder="New Password" />
         </Form.Item>
 
         <Form.Item>
@@ -88,4 +128,4 @@ const EditProfile: React.FC = () => {
   );
 };
 
-export default EditProfile;
+export default UpdateUserInfo;
