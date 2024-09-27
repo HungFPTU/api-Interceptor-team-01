@@ -9,9 +9,7 @@ interface DefaultLayoutProps {
     return (
       <div>
         <Header />
-        <div className="container">
-          <div className="content">{children}</div>
-        </div>
+          <div className="content">{children}</div>  
       </div>
     );
   };

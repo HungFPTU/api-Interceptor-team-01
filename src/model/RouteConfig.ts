@@ -14,3 +14,21 @@ export interface RouteConfig {
   layout?: ComponentType | null;  // Optional layout, can be null or a component
   role: RoleEnum;  // Role associated with the route
 }
+
+export interface User{
+  userId: number,
+  fullName: string, 
+  email: string, 
+  password: string, 
+  createDate: string, 
+  updateDate: string
+}
+export interface Post{
+  title: string,
+  dateCreate: number,
+  content: string,
+  userId: number,
+  postId: number,
+  image:string
+  updateDate: string,
+}
