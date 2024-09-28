@@ -41,7 +41,7 @@ const Home: React.FC = () => {
     setOriginalPosts(posts); // Store the original posts when posts are fetched
   }, [posts]);
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
@@ -53,7 +53,11 @@ const Home: React.FC = () => {
         setOriginalPosts(response.data); // Set originalPosts immediately
 
         // Fetch usernames and update loading state
-        await Promise.all(response.data.map((post: { userId: number; }) => getUserById(post.userId)));
+        await Promise.all(
+          response.data.map((post: { userId: number }) =>
+            getUserById(post.userId)
+          )
+        );
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching posts:", error);
@@ -64,44 +68,44 @@ const Home: React.FC = () => {
     fetchPosts();
   }, []);
 
-
   const onSearch = (value: string) => {
     if (value.trim() === "") {
       setPosts(originalPosts);
     } else {
       // Use a functional state update to access the latest originalPosts
       setPosts((prevPosts) => [
-        ...prevPosts.filter( // Filter existing filtered posts
+        ...prevPosts.filter(
+          // Filter existing filtered posts
           (post) =>
             post.title.toLowerCase().includes(value.toLowerCase()) ||
             post.content.toLowerCase().includes(value.toLowerCase())
         ),
-        ...originalPosts.filter( // Add new matches from originalPosts (if not already in prevPosts)
+        ...originalPosts.filter(
+          // Add new matches from originalPosts (if not already in prevPosts)
           (post) =>
-            !prevPosts.some(p => p.postId === post.postId) && // Check if not already in prevPosts
-            (
-              post.title.toLowerCase().includes(value.toLowerCase()) ||
-              post.content.toLowerCase().includes(value.toLowerCase())
-            )
-        )
+            !prevPosts.some((p) => p.postId === post.postId) && // Check if not already in prevPosts
+            (post.title.toLowerCase().includes(value.toLowerCase()) ||
+              post.content.toLowerCase().includes(value.toLowerCase()))
+        ),
       ]);
     }
   };
-
 
   const handleLogin = () => {
     navigate("/login");
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('user'); // Remove user data from local storage
+    localStorage.removeItem("user"); // Remove user data from local storage
     setUser(null);
+  };
+  const handleManagerPost = () => {
+    navigate("/manager-post");
   };
 
   const handleUpdateUser = () => {
     navigate("/updateuser");
   };
-
 
   const menu = (
     <Menu>
@@ -154,7 +158,10 @@ const Home: React.FC = () => {
                   Hi, {user.fullName} <DownOutlined />
                 </span>
               </Dropdown>
-              <Button type="primary" onClick={handleLogout}>
+              <Button type="primary" onClick={handleManagerPost}>
+                Manager Post
+              </Button>
+              <Button type="primary" danger onClick={handleLogout}>
                 Logout
               </Button>
             </div>
@@ -184,15 +191,17 @@ const Home: React.FC = () => {
             ) : (
               <div className="space-y-5">
                 {posts.map((post) => {
-
-                  const date = new Date(post.dateCreate * 1000).toLocaleString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                  });
+                  const date = new Date(post.dateCreate * 1000).toLocaleString(
+                    "en-US",
+                    {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      second: "2-digit",
+                    }
+                  );
 
                   return (
                     <div
@@ -209,7 +218,8 @@ const Home: React.FC = () => {
                             />
                           </div>
                           <span className="name text-[1.2rem] text-[#292929] font-semibold ml-2">
-                            {userNames[post.userId] || "Loading..."} {/* Display username or loading message */}
+                            {userNames[post.userId] || "Loading..."}{" "}
+                            {/* Display username or loading message */}
                           </span>
                         </div>
                       </div>
@@ -233,17 +243,19 @@ const Home: React.FC = () => {
                         </div>
                         <div className="date mt-4">
                           <a className="front px-2.5 py-1 rounded-full bg-[#f2f2f2] text-[#333] leading-8 mr-3 font-medium"></a>
-                          <span className="time mt-0 mr-32 mb-0 ml-0">Create date: {date}, </span>
-                          <span className="updatedate ">Update date: {date}</span>
+                          <span className="time mt-0 mr-32 mb-0 ml-0">
+                            Create date: {date},{" "}
+                          </span>
+                          <span className="updatedate ">
+                            Update date: {date}
+                          </span>
                         </div>
                       </div>
                     </div>
                   );
                 })}
               </div>
-
             )}
-
           </div>
         </Content>
         <Footer style={{ textAlign: "center" }}>
