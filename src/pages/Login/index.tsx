@@ -58,9 +58,14 @@ const Login: React.FC = () => {
           <Input.Password placeholder="Password" />
         </Form.Item>
 
-        <Form.Item name="remember" valuePropName="checked" noStyle>
-          <Checkbox className='text-gray-600'>Remember me</Checkbox>
-        </Form.Item>
+        <div className="flex items-center justify-between">
+          <Form.Item name="remember" valuePropName="checked" noStyle>
+            <Checkbox className='text-gray-600'>Remember me</Checkbox>
+          </Form.Item>
+          <a href="/register" className="ml-2 text-blue-500">  {/* Added link */}
+            Register
+          </a>
+        </div>
 
         <Form.Item>
           <Button type="primary" htmlType="submit" className="w-full mt-3">
