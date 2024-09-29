@@ -1,45 +1,59 @@
-import { Breadcrumb, Layout, theme, Input, Button, Dropdown, Menu } from "antd";
-import React, { useState, useEffect } from "react";
+import {
+  Button,
+  Form,
+  Input,
+  Modal,
+  Popconfirm,
+  Table,
+  Upload,
+  Image,
+  DatePicker,
+  message,
+  Breadcrumb,
+  Layout,
+  Dropdown,
+  Menu,
+} from "antd";
+import TextArea from "antd/es/input/TextArea";
+import { PlusOutlined, DownOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
+import { useEffect, useState } from "react";
+import { useForm } from "antd/es/form/Form";
 import { useNavigate } from "react-router-dom";
-import { DownOutlined } from "@ant-design/icons";
 import postAPI from "../../api/postAPI";
-import { Post } from "../../model/RouteConfig";
-import assets from "../../assets/assets";
 import userAPI from "../../api/userAPI";
+import { Post, User } from "../../model/RouteConfig";
+import uploadFile from "../../utils/upload";
+import assets from "../../assets/assets";
 const { Search } = Input;
 const { Header, Content, Footer, Sider } = Layout;
 
-const Home: React.FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
+// Utility to get base64 from file
+const getBase64 = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
 
+const Home = () => {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [user, setUser] = useState<any>(null);
-  const [userNames, setUserNames] = useState<{ [userId: number]: string }>({}); // Store usernames by userId
+  const [form] = useForm();
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [fileList, setFileList] = useState<any[]>([]);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [currentPostId, setCurrentPostId] = useState<number | null>(null);
+  const [userNames, setUserNames] = useState<{ [userId: number]: string }>({});
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState("");
+  const [user, setUser] = useState<User[]>([]);
+  const [collapsed, setCollapsed] = useState(false);
   const [originalPosts, setOriginalPosts] = useState<Post[]>([]);
-  const [isLoading, setIsLoading] = useState(true); // Track loading state
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  const getUserById = async (userId: number) => {
-    try {
-      // Check if the username is already fetched
-      if (!userNames[userId]) {
-        const res = await userAPI.getUserIdAPI({ userId });
-        setUserNames((prevUserNames) => ({
-          ...prevUserNames,
-          [userId]: res.data.fullName,
-        }));
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    setOriginalPosts(posts); // Store the original posts when posts are fetched
-  }, [posts]);
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -50,17 +64,17 @@ const Home: React.FC = () => {
       try {
         const response = await postAPI.getAllPostAPI();
         setPosts(response.data);
-        setOriginalPosts(response.data); // Set originalPosts immediately
+        setOriginalPosts(response.data);
 
-        // Fetch usernames and update loading state
         await Promise.all(
           response.data.map((post: { userId: number }) =>
             getUserById(post.userId)
           )
         );
-        setIsLoading(false);
       } catch (error) {
+        message.error("Error fetching posts.");
         console.error("Error fetching posts:", error);
+      } finally {
         setIsLoading(false);
       }
     };
@@ -68,48 +82,209 @@ const Home: React.FC = () => {
     fetchPosts();
   }, []);
 
-  const onSearch = (value: string) => {
-    if (value.trim() === "") {
-      setPosts(originalPosts);
-    } else {
-      // Use a functional state update to access the latest originalPosts
-      setPosts((prevPosts) => [
-        ...prevPosts.filter(
-          // Filter existing filtered posts
-          (post) =>
-            post.title.toLowerCase().includes(value.toLowerCase()) ||
-            post.content.toLowerCase().includes(value.toLowerCase())
-        ),
-        ...originalPosts.filter(
-          // Add new matches from originalPosts (if not already in prevPosts)
-          (post) =>
-            !prevPosts.some((p) => p.postId === post.postId) && // Check if not already in prevPosts
-            (post.title.toLowerCase().includes(value.toLowerCase()) ||
-              post.content.toLowerCase().includes(value.toLowerCase()))
-        ),
-      ]);
+  const getUserById = async (userId: number) => {
+    try {
+      if (!userNames[userId]) {
+        const res = await userAPI.getUserIdAPI({ userId });
+        setUserNames((prevUserNames) => ({
+          ...prevUserNames,
+          [userId]: res.data.fullName,
+        }));
+      }
+    } catch (error) {
+      message.error("Error fetching user details.");
+      console.log(error);
     }
   };
 
-  const handleLogin = () => {
-    navigate("/login");
+  const handleSubmit = async (values: any) => {
+    setLoading(true);
+    try {
+      let url = "";
+
+      if (fileList.length > 0 && fileList[0]?.originFileObj) {
+        url = await uploadFile(fileList[0].originFileObj);
+      } else if (fileList.length > 0 && fileList[0]?.url) {
+        url = fileList[0].url;
+      } else {
+        message.error("Please provide an image.");
+        throw new Error("No image provided.");
+      }
+
+      const newPost = {
+        ...values,
+        image: url,
+        dateCreate: dayjs(values.createDate).unix(),
+        updateDate: dayjs().toISOString(),
+      };
+
+      if (isEditing && currentPostId !== null) {
+        await postAPI.updatePostIdAPI({ postId: currentPostId }, newPost);
+        const updatedPosts = posts.map((post) =>
+          post.postId === currentPostId
+            ? { ...newPost, postId: currentPostId }
+            : post
+        );
+        setPosts(updatedPosts);
+        message.success("Post updated successfully!");
+      } else {
+        const response = await postAPI.createNewPostAPI(newPost);
+        setPosts([...posts, { ...newPost, postId: response.data.postId }]);
+        message.success("Post created successfully!");
+      }
+
+      setShowModal(false);
+      form.resetFields();
+      setFileList([]);
+      setIsEditing(false);
+      setCurrentPostId(null);
+    } catch (error) {
+      message.error("Failed to save post.");
+      console.error("Failed to save post:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("user"); // Remove user data from local storage
-    setUser(null);
-  };
-  const handleManagerPost = () => {
-    navigate("/manager-post");
+  const handleEditPost = (post: Post) => {
+    setIsEditing(true);
+    setCurrentPostId(post.postId);
+    form.setFieldsValue({
+      ...post,
+      createDate: dayjs.unix(post.dateCreate),
+      updateDate: dayjs(post.updateDate, "YYYY-MM-DDTHH:mm:ss"),
+    });
+    setFileList([
+      {
+        uid: "-1",
+        name: "image",
+        status: "done",
+        url: post.image,
+      },
+    ]);
+    setShowModal(true);
   };
 
-  const handleUpdateUser = () => {
-    navigate("/updateuser");
+  const handleDeletePost = async (postId: number) => {
+    try {
+      await postAPI.deletetePostIdAPI({ postId });
+      setPosts(posts.filter((post) => post.postId !== postId));
+      message.success("Post deleted successfully!");
+    } catch (error) {
+      message.error("Failed to delete post.");
+      console.error("Failed to delete post:", error);
+    }
   };
+
+  const handleCreateNewPost = () => {
+    const storedUser = localStorage.getItem("user");
+    const currentUser = storedUser ? JSON.parse(storedUser) : null;
+
+    form.resetFields();
+    setIsEditing(false);
+    setCurrentPostId(null);
+    setFileList([]);
+
+    if (currentUser && currentUser.userId) {
+      form.setFieldsValue({ userId: currentUser.userId });
+    }
+
+    setShowModal(true);
+  };
+
+  const handlePreview = async (file: any) => {
+    if (!file.url && !file.preview) {
+      file.preview = await getBase64(file.originFileObj);
+    }
+    setPreviewImage(file.url || file.preview);
+    setPreviewOpen(true);
+  };
+
+  const handleChange = ({ fileList: newFileList }: any) =>
+    setFileList(newFileList);
+
+  const columns = [
+    {
+      title: "ID",
+      dataIndex: "postId",
+      key: "postId",
+      align: "center",
+    },
+    {
+      title: "Image",
+      dataIndex: "image",
+      key: "image",
+      align: "center",
+      render: (image: string) => <Image src={image} width={100} />,
+    },
+    {
+      title: "User",
+      dataIndex: "userId",
+      key: "userId",
+      align: "center",
+      render: (userId: number) => userNames[userId] || "Loading...",
+    },
+    {
+      title: "Title",
+      dataIndex: "title",
+      key: "title",
+      align: "center",
+    },
+    {
+      title: "Content",
+      dataIndex: "content",
+      key: "content",
+      align: "center",
+    },
+    {
+      title: "Create Date",
+      dataIndex: "dateCreate",
+      key: "dateCreate",
+      align: "center",
+      render: (dateCreate: number) =>
+        dayjs.unix(dateCreate).format("YYYY-MM-DD | HH:mm:ss"),
+    },
+    {
+      title: "Update Date",
+      dataIndex: "updateDate",
+      key: "updateDate",
+      align: "center",
+      render: (updateDate: string) =>
+        dayjs(updateDate).format("YYYY-MM-DD | HH:mm:ss"),
+    },
+    {
+      title: "Actions",
+      dataIndex: "postId",
+      key: "postId",
+      align: "center",
+      render: (postId: number, record: Post) => (
+        <div style={{ textAlign: "center" }}>
+          <Button
+            type="primary"
+            style={{ marginRight: 8 }}
+            onClick={() => handleEditPost(record)}
+          >
+            Update
+          </Button>
+          <Popconfirm
+            title="Delete the post"
+            description="Are you sure to delete this post?"
+            onConfirm={() => handleDeletePost(postId)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button type="primary" danger>
+              Delete
+            </Button>
+          </Popconfirm>
+        </div>
+      ),
+    },
+  ];
 
   const menu = (
     <Menu>
-      <Menu.Item key="1" onClick={handleUpdateUser}>
+      <Menu.Item key="1" onClick={() => navigate("/updateuser")}>
         Update User
       </Menu.Item>
     </Menu>
@@ -120,15 +295,10 @@ const Home: React.FC = () => {
       <Sider
         collapsible
         collapsed={collapsed}
-        onCollapse={(value) => setCollapsed(value)}
-        breakpoint="lg"
-        collapsedWidth="0"
+        onCollapse={setCollapsed}
         width={250}
       >
-        <div
-          className="demo-logo-vertical flex justify-center mt-2"
-          style={{ textAlign: "center", marginTop: "10px" }}
-        >
+        <div style={{ textAlign: "center", marginTop: "10px" }}>
           <img
             src={
               !collapsed
@@ -137,7 +307,6 @@ const Home: React.FC = () => {
             }
             alt="logo"
             width={collapsed ? 50 : 120}
-            className="header__logo"
           />
         </div>
       </Sider>
@@ -145,28 +314,37 @@ const Home: React.FC = () => {
         <Header className="bg-white flex flex-col sm:flex-row justify-between items-center p-4">
           <Search
             placeholder="input search text"
-            onSearch={onSearch}
+            onSearch={(value) =>
+              setPosts(
+                originalPosts.filter((post) =>
+                  post.title.toLowerCase().includes(value.toLowerCase())
+                )
+              )
+            }
             className="w-full sm:w-1/2 mb-2 sm:mb-0"
           />
           {user ? (
             <div className="flex items-center space-x-3">
               <Dropdown overlay={menu}>
-                <span
-                  className="ant-dropdown-link cursor-pointer"
-                  onClick={(e) => e.preventDefault()}
-                >
+                <span className="ant-dropdown-link cursor-pointer">
                   Hi, {user.fullName} <DownOutlined />
                 </span>
               </Dropdown>
-              <Button type="primary" onClick={handleManagerPost}>
-                Manager Post
+              <Button type="primary" onClick={handleCreateNewPost}>
+                Create New Post
               </Button>
-              <Button type="primary" onClick={handleLogout}>
+              <Button
+                type="primary"
+                onClick={() => {
+                  localStorage.removeItem("user");
+                  setUser(null);
+                }}
+              >
                 Logout
               </Button>
             </div>
           ) : (
-            <Button type="primary" onClick={handleLogin}>
+            <Button type="primary" onClick={() => navigate("/login")}>
               Login
             </Button>
           )}
@@ -181,87 +359,152 @@ const Home: React.FC = () => {
             style={{
               padding: 24,
               minHeight: "100%",
-              background: colorBgContainer,
-              borderRadius: borderRadiusLG,
+              background: "#fff",
+              borderRadius: "8px",
             }}
           >
-            {/* Post Loading and Display */}
             {isLoading ? (
-              <div>Loading...</div> // Display loading message while fetching data
+              <div>Loading...</div>
             ) : (
               <div className="space-y-5">
-                {posts.map((post) => {
-                  const date = new Date(post.dateCreate * 1000).toLocaleString(
-                    "en-US",
-                    {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      second: "2-digit",
-                    }
-                  );
-
-                  return (
-                    <div
-                      className="wrapper flex flex-col gap-3 p-5 rounded-2xl border-2 border-[#e8e8e8]"
-                      key={post.postId}
-                    >
-                      <div className="header flex items-center justify-between">
-                        <div className="author flex items-center">
-                          <div className="avatar text-[var(--font-size)] bg-transparent rounded-full">
-                            <img
-                              alt=""
-                              src={assets.avatar}
-                              className="avatar2 w-[3em] h-[3em] object-cover rounded-full "
-                            />
-                          </div>
-                          <span className="name text-[1.2rem] text-[#292929] font-semibold ml-2">
-                            {userNames[post.userId] || "Loading..."}{" "}
-                            {/* Display username or loading message */}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="body flex flex-col">
-                        <div className="info text-2xl flex-1 pr-8">
-                          {post.title}
-                          <p className="context mt-1 text-xl leading-6 text-gray-600">
-                            {post.content}
-                          </p>
-                          {/* <div className="date mt-4">
-                        <a className="front px-2.5 py-1 rounded-full bg-[#f2f2f2] text-[#333] leading-8 mr-3 font-medium"></a>
-                        <span className="time mt-0 mr-32 mb-0 ml-0">Create date: {date}, </span>
-                        <span className="updatedate ">Update date: {date}</span>
-                      </div> */}
-                        </div>
-                        <div className="thumb flex-shrink-0 mt-4">
-                          <img
-                            className="w-full sm:w-[200px] max-h-[120px] rounded-[15px] block leading-[1.8] text-[1.4rem] text-[#757575] bg-[#ebebeb] overflow-hidden text-center object-cover"
-                            src={post.image}
-                          />
-                        </div>
-                        <div className="date mt-4">
-                          <a className="front px-2.5 py-1 rounded-full bg-[#f2f2f2] text-[#333] leading-8 mr-3 font-medium"></a>
-                          <span className="time mt-0 mr-32 mb-0 ml-0">
-                            Create date: {date},{" "}
-                          </span>
-                          <span className="updatedate ">
-                            Update date: {date}
-                          </span>
-                        </div>
+                {posts.map((post) => (
+                  <div
+                    className="wrapper flex flex-col gap-3 p-5 rounded-2xl border-2 border-[#e8e8e8]"
+                    key={post.postId}
+                  >
+                    <div className="header flex items-center justify-between">
+                      <div className="author flex items-center">
+                        <img
+                          src={assets.avatar}
+                          className="w-[3em] h-[3em] object-cover rounded-full"
+                          alt="avatar"
+                        />
+                        <span className="name text-[1.2rem] font-semibold ml-2">
+                          {userNames[post.userId] || "Loading..."}
+                        </span>
                       </div>
                     </div>
-                  );
-                })}
+                    <div className="body flex flex-col">
+                      <div className="info text-2xl flex-1 pr-8">
+                        {post.title}
+                        <p className="context mt-1 text-xl text-gray-600">
+                          {post.content}
+                        </p>
+                      </div>
+                      <img
+                        className="w-full sm:w-[200px] max-h-[120px] rounded-[15px] mt-4"
+                        src={post.image}
+                        alt={post.title}
+                      />
+                      <div className="date mt-4">
+                        <span className="time">
+                          Create date:{" "}
+                          {new Date(post.dateCreate * 1000).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
+
+            {/* Manager Post Table */}
+            <Table
+              dataSource={posts}
+              columns={columns}
+              pagination={{ position: ["bottomCenter"] }}
+              rowKey={(record) => record.postId}
+            />
           </div>
         </Content>
         <Footer style={{ textAlign: "center" }}>
           Ant Design ©{new Date().getFullYear()} Created by Ant UED
         </Footer>
       </Layout>
+
+      <Modal
+        onCancel={() => setShowModal(false)}
+        open={showModal}
+        footer={[
+          <Button key="back" onClick={() => setShowModal(false)}>
+            Cancel
+          </Button>,
+          <Button
+            type="primary"
+            style={{ background: "green", color: "white" }}
+            onClick={() => form.submit()}
+            loading={loading}
+          >
+            Submit
+          </Button>,
+        ]}
+      >
+        <Form form={form} labelCol={{ span: 24 }} onFinish={handleSubmit}>
+          <Form.Item name="postId" hidden>
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="userId"
+            label="User ID"
+            rules={[{ required: true, message: "Please input User ID!" }]}
+          >
+            <Input disabled />
+          </Form.Item>
+
+          <Form.Item
+            name="title"
+            label="Title"
+            rules={[{ required: true, message: "Please input post title!" }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="content"
+            label="Content"
+            rules={[{ required: true, message: "Please input post content!" }]}
+          >
+            <TextArea rows={4} />
+          </Form.Item>
+          <Form.Item label="Image" name="image">
+            <Upload
+              listType="picture-card"
+              fileList={fileList}
+              onPreview={handlePreview}
+              onChange={handleChange}
+              beforeUpload={() => false}
+            >
+              {fileList.length >= 1 ? null : <PlusOutlined />}
+            </Upload>
+          </Form.Item>
+
+          <Form.Item name="createDate" label="Create Date">
+            <DatePicker
+              style={{ width: "100%" }}
+              format="YYYY-MM-DD HH:mm:ss"
+              showTime
+              disabled
+            />
+          </Form.Item>
+
+          <Form.Item name="updateDate" label="Update Date">
+            <DatePicker
+              style={{ width: "100%" }}
+              format="YYYY-MM-DD HH:mm:ss"
+              showTime
+              disabled={isEditing}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Image
+        style={{ display: "none" }}
+        preview={{
+          visible: previewOpen,
+          src: previewImage,
+          onVisibleChange: (value) => setPreviewOpen(value),
+        }}
+      />
     </Layout>
   );
 };
