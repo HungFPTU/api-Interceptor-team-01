@@ -19,6 +19,7 @@ import postAPI from "../../api/postAPI";
 import userAPI from "../../api/userAPI";
 import { Post } from "../../model/RouteConfig";
 import uploadFile from "../../utils/upload";
+import { useNavigate } from "react-router-dom";
 
 // Utility to get base64 from file
 const getBase64 = (file: File) =>
@@ -41,12 +42,19 @@ function ManagePost() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
   // const [user, setUser] = useState<User[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       // This logic can be removed if user is not needed anywhere
       // setUser(JSON.parse(storedUser)); // This line is removed
+    }
+
+    if (!storedUser) {
+      message.error("Please log in to manage posts.");
+      navigate("/login"); // Redirect to login if no user is found
+      return;
     }
 
     const fetchPosts = async () => {
