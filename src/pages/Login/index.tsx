@@ -5,7 +5,9 @@ import userAPI from '../../api/userAPI';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-
+  const handleBackHome = () =>{
+    navigate("/")
+  }
   const onFinish = async (values: any) => {
     console.log('Received values:', values);
     try {
@@ -70,6 +72,11 @@ const Login: React.FC = () => {
         <Form.Item>
           <Button type="primary" htmlType="submit" className="w-full mt-3">
             Login
+          </Button>
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" className="w-full mt-3" onClick={handleBackHome}>
+            Back to Home page
           </Button>
         </Form.Item>
       </Form>
