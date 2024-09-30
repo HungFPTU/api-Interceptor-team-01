@@ -75,7 +75,7 @@ const Login: React.FC = () => {
           </Button>
         </Form.Item>
         <Form.Item>
-          <Button className="w-full bg-white text-black hover:bg-gray-200 mt-1" onClick={handleBackHome}>
+          <Button className="w-full bg-white text-black hover:bg-gray-200" onClick={handleBackHome}>
             Back to Home page
           </Button>
         </Form.Item>
