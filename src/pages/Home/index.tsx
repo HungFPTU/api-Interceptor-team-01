@@ -17,14 +17,13 @@ const Home: React.FC = () => {
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [user, setUser] = useState<any>(null);
-  const [userNames, setUserNames] = useState<{ [userId: number]: string }>({}); // Store usernames by userId
+  const [userNames, setUserNames] = useState<{ [userId: number]: string }>({});
   const [originalPosts, setOriginalPosts] = useState<Post[]>([]);
-  const [isLoading, setIsLoading] = useState(true); // Track loading state
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   const getUserById = async (userId: number) => {
     try {
-      // Check if the username is already fetched
       if (!userNames[userId]) {
         const res = await userAPI.getUserIdAPI({ userId });
         setUserNames((prevUserNames) => ({
@@ -38,10 +37,11 @@ const Home: React.FC = () => {
   };
 
   useEffect(() => {
-    setOriginalPosts(posts); // Store the original posts when posts are fetched
+    setOriginalPosts(posts);
   }, [posts]);
+
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
@@ -50,10 +50,9 @@ const Home: React.FC = () => {
       try {
         const response = await postAPI.getAllPostAPI();
         setPosts(response.data);
-        setOriginalPosts(response.data); // Set originalPosts immediately
+        setOriginalPosts(response.data);
 
-        // Fetch usernames and update loading state
-        await Promise.all(response.data.map((post: { userId: number; }) => getUserById(post.userId)));
+        await Promise.all(response.data.map((post: { userId: number }) => getUserById(post.userId)));
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching posts:", error);
@@ -64,44 +63,38 @@ const Home: React.FC = () => {
     fetchPosts();
   }, []);
 
-
   const onSearch = (value: string) => {
     if (value.trim() === "") {
       setPosts(originalPosts);
     } else {
-      // Use a functional state update to access the latest originalPosts
       setPosts((prevPosts) => [
-        ...prevPosts.filter( // Filter existing filtered posts
+        ...prevPosts.filter(
           (post) =>
             post.title.toLowerCase().includes(value.toLowerCase()) ||
             post.content.toLowerCase().includes(value.toLowerCase())
         ),
-        ...originalPosts.filter( // Add new matches from originalPosts (if not already in prevPosts)
+        ...originalPosts.filter(
           (post) =>
-            !prevPosts.some(p => p.postId === post.postId) && // Check if not already in prevPosts
-            (
-              post.title.toLowerCase().includes(value.toLowerCase()) ||
-              post.content.toLowerCase().includes(value.toLowerCase())
-            )
-        )
+            !prevPosts.some((p) => p.postId === post.postId) &&
+            (post.title.toLowerCase().includes(value.toLowerCase()) ||
+              post.content.toLowerCase().includes(value.toLowerCase()))
+        ),
       ]);
     }
   };
-
 
   const handleLogin = () => {
     navigate("/login");
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('user'); // Remove user data from local storage
+    localStorage.removeItem("user");
     setUser(null);
   };
 
   const handleUpdateUser = () => {
     navigate("/updateuser");
   };
-
 
   const menu = (
     <Menu>
@@ -121,10 +114,7 @@ const Home: React.FC = () => {
         collapsedWidth="0"
         width={250}
       >
-        <div
-          className="demo-logo-vertical flex justify-center mt-2"
-          style={{ textAlign: "center", marginTop: "10px" }}
-        >
+        <div className="demo-logo-vertical flex justify-center mt-2">
           <img
             src={
               !collapsed
@@ -133,24 +123,16 @@ const Home: React.FC = () => {
             }
             alt="logo"
             width={collapsed ? 50 : 120}
-            className="header__logo"
           />
         </div>
       </Sider>
       <Layout>
         <Header className="bg-white flex flex-col sm:flex-row justify-between items-center p-4">
-          <Search
-            placeholder="input search text"
-            onSearch={onSearch}
-            className="w-full sm:w-1/2 mb-2 sm:mb-0"
-          />
+          <Search placeholder="input search text" onSearch={onSearch} className="w-full sm:w-1/2 mb-2 sm:mb-0" />
           {user ? (
             <div className="flex items-center space-x-3">
               <Dropdown overlay={menu}>
-                <span
-                  className="ant-dropdown-link cursor-pointer"
-                  onClick={(e) => e.preventDefault()}
-                >
+                <span className="ant-dropdown-link cursor-pointer" onClick={(e) => e.preventDefault()}>
                   Hi, {user.fullName} <DownOutlined />
                 </span>
               </Dropdown>
@@ -178,14 +160,20 @@ const Home: React.FC = () => {
               borderRadius: borderRadiusLG,
             }}
           >
-            {/* Post Loading and Display */}
             {isLoading ? (
-              <div>Loading...</div> // Display loading message while fetching data
+              <div>Loading...</div>
             ) : (
               <div className="space-y-5">
                 {posts.map((post) => {
-
                   const date = new Date(post.dateCreate * 1000).toLocaleString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                  });
+                  const updateDate = new Date(post.updateDate).toLocaleString("en-US", {
                     year: "numeric",
                     month: "long",
                     day: "numeric",
@@ -196,54 +184,45 @@ const Home: React.FC = () => {
 
                   return (
                     <div
-                      className="wrapper flex flex-col gap-3 p-5 rounded-2xl border-2 border-[#e8e8e8]"
+                      className="wrapper flex gap-3 p-5 rounded-2xl border-2 border-[#e8e8e8]"
                       key={post.postId}
                     >
-                      <div className="header flex items-center justify-between">
-                        <div className="author flex items-center">
-                          <div className="avatar text-[var(--font-size)] bg-transparent rounded-full">
+                      <div className="content flex-1 pr-8">
+                        <div className="header flex items-center justify-between">
+                          <div className="author flex items-center">
                             <img
                               alt=""
                               src={assets.avatar}
-                              className="avatar2 w-[3em] h-[3em] object-cover rounded-full "
+                              className="avatar2 w-[3em] h-[3em] object-cover rounded-full"
                             />
+                            <span className="name text-[1.2rem] text-[#292929] font-semibold ml-2">
+                              {userNames[post.userId] || "Loading..."}
+                            </span>
                           </div>
-                          <span className="name text-[1.2rem] text-[#292929] font-semibold ml-2">
-                            {userNames[post.userId] || "Loading..."} {/* Display username or loading message */}
-                          </span>
+                        </div>
+                        <div className="body">
+                          <h2 className="text-2xl">{post.title}</h2>
+                          <p className="mt-1 text-xl leading-6 text-gray-600">{post.content}</p>
+                          <div className="date mt-4">
+                            <span className="time">Create date: {date}</span>
+                          </div>
+                          <div className="date mt-4">
+                            <span className="time">Update date: {updateDate}</span>
+                          </div>
                         </div>
                       </div>
-                      <div className="body flex flex-col">
-                        <div className="info text-2xl flex-1 pr-8">
-                          {post.title}
-                          <p className="context mt-1 text-xl leading-6 text-gray-600">
-                            {post.content}
-                          </p>
-                          {/* <div className="date mt-4">
-                        <a className="front px-2.5 py-1 rounded-full bg-[#f2f2f2] text-[#333] leading-8 mr-3 font-medium"></a>
-                        <span className="time mt-0 mr-32 mb-0 ml-0">Create date: {date}, </span>
-                        <span className="updatedate ">Update date: {date}</span>
-                      </div> */}
-                        </div>
-                        <div className="thumb flex-shrink-0 mt-4">
-                          <img
-                            className="w-full sm:w-[200px] max-h-[120px] rounded-[15px] block leading-[1.8] text-[1.4rem] text-[#757575] bg-[#ebebeb] overflow-hidden text-center object-cover"
-                            src={post.image}
-                          />
-                        </div>
-                        <div className="date mt-4">
-                          <a className="front px-2.5 py-1 rounded-full bg-[#f2f2f2] text-[#333] leading-8 mr-3 font-medium"></a>
-                          <span className="time mt-0 mr-32 mb-0 ml-0">Create date: {date}, </span>
-                          <span className="updatedate ">Update date: {date}</span>
-                        </div>
+                      <div className="thumb flex-shrink-0 w-[200px]">
+                        <img
+                          className="max-h-[120px] rounded-[15px] object-cover"
+                          src={post.image}
+                          alt="post"
+                        />
                       </div>
                     </div>
                   );
                 })}
               </div>
-
             )}
-
           </div>
         </Content>
         <Footer style={{ textAlign: "center" }}>
