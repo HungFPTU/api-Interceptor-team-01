@@ -52,7 +52,11 @@ const Home: React.FC = () => {
         setPosts(response.data);
         setOriginalPosts(response.data);
 
-        await Promise.all(response.data.map((post: { userId: number }) => getUserById(post.userId)));
+        await Promise.all(
+          response.data.map((post: { userId: number }) =>
+            getUserById(post.userId)
+          )
+        );
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching posts:", error);
@@ -92,6 +96,10 @@ const Home: React.FC = () => {
     setUser(null);
   };
 
+  const handleManagerPost = () => {
+    navigate("/manager-post");
+  };
+
   const handleUpdateUser = () => {
     navigate("/updateuser");
   };
@@ -128,15 +136,25 @@ const Home: React.FC = () => {
       </Sider>
       <Layout>
         <Header className="bg-white flex flex-col sm:flex-row justify-between items-center p-4">
-          <Search placeholder="input search text" onSearch={onSearch} className="w-full sm:w-1/2 mb-2 sm:mb-0" />
+          <Search
+            placeholder="input search text"
+            onSearch={onSearch}
+            className="w-full sm:w-1/2 mb-2 sm:mb-0"
+          />
           {user ? (
             <div className="flex items-center space-x-3">
               <Dropdown overlay={menu}>
-                <span className="ant-dropdown-link cursor-pointer" onClick={(e) => e.preventDefault()}>
+                <span
+                  className="ant-dropdown-link cursor-pointer"
+                  onClick={(e) => e.preventDefault()}
+                >
                   Hi, {user.fullName} <DownOutlined />
                 </span>
               </Dropdown>
-              <Button type="primary" onClick={handleLogout}>
+              <Button type="primary" onClick={handleManagerPost}>
+                Manager Post
+              </Button>
+              <Button type="primary" danger onClick={handleLogout}>
                 Logout
               </Button>
             </div>
@@ -165,22 +183,28 @@ const Home: React.FC = () => {
             ) : (
               <div className="space-y-5">
                 {posts.map((post) => {
-                  const date = new Date(post.dateCreate * 1000).toLocaleString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                  });
-                  const updateDate = new Date(post.updateDate).toLocaleString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                  });
+                  const date = new Date(post.dateCreate * 1000).toLocaleString(
+                    "en-US",
+                    {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      second: "2-digit",
+                    }
+                  );
+                  const updateDate = new Date(post.updateDate).toLocaleString(
+                    "en-US",
+                    {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      second: "2-digit",
+                    }
+                  );
 
                   return (
                     <div
@@ -202,12 +226,16 @@ const Home: React.FC = () => {
                         </div>
                         <div className="body">
                           <h2 className="text-2xl">{post.title}</h2>
-                          <p className="mt-1 text-xl leading-6 text-gray-600">{post.content}</p>
+                          <p className="mt-1 text-xl leading-6 text-gray-600">
+                            {post.content}
+                          </p>
                           <div className="date mt-4">
                             <span className="time">Create date: {date}</span>
                           </div>
                           <div className="date mt-4">
-                            <span className="time">Update date: {updateDate}</span>
+                            <span className="time">
+                              Update date: {updateDate}
+                            </span>
                           </div>
                         </div>
                       </div>
